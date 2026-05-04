@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointer Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 900px;
+    background: #1a1d2e;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #2d3154;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #13152a;
+    border-bottom: 1px solid #2d3154;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #34d399;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .btn-icon {
+    padding: 6px 10px;
+    background: #2d3154;
+    color: #94a3b8;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover { background: #3d4270; color: #e2e8f0; }
+
+  .btn-play {
+    background: linear-gradient(135deg, #059669, #34d399);
+    color: white;
+    box-shadow: 0 4px 12px rgba(5,150,105,0.4);
+  }
+  .btn-play:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(5,150,105,0.5); }
+
+  .speed-label { font-size: 12px; color: #64748b; margin-left: 4px; }
+
+  .speed-select {
+    background: #2d3154;
+    color: #e2e8f0;
+    border: 1px solid #3d4270;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    cursor: pointer;
+  }
+
+  .step-counter {
+    margin-left: auto;
+    font-size: 12px;
+    color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+    background: #2d3154;
+    padding: 5px 10px;
+    border-radius: 6px;
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 340px;
+  }
+
+  .code-panel { border-right: 1px solid #2d3154; overflow: hidden; }
+  .code-lines { padding: 12px 0; }
+
+  .code-line {
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+    transition: background 0.2s;
+    border-left: 3px solid transparent;
+  }
+
+  .code-line.active {
+    background: rgba(52, 211, 153, 0.12);
+    border-left-color: #34d399;
+  }
+
+  .line-num {
+    width: 40px;
+    text-align: right;
+    padding-right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #374151;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .code-line.active .line-num { color: #059669; }
+
+  .line-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: #cbd5e1;
+    white-space: pre;
+  }
+
+  .kw { color: #c084fc; }
+  .fn { color: #60a5fa; }
+  .nu { color: #fb923c; }
+  .st { color: #4ade80; }
+  .op { color: #94a3b8; }
+  .addr { color: #f59e0b; }
+
+  .info-panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #34d399;
+  }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #34d399;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .explanation {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #cbd5e1;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Memory visualization */
+  .memory-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mem-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.3;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+
+  .mem-row.active { opacity: 1; }
+  .mem-row.highlight { transform: translateX(4px); }
+
+  .mem-addr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #f59e0b;
+    width: 68px;
+    flex-shrink: 0;
+  }
+
+  .mem-box {
+    background: #2d3154;
+    border: 1px solid #3d4270;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    min-width: 60px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .mem-box.ptr { border-color: #34d399; color: #f59e0b; }
+  .mem-box.val { border-color: #60a5fa; color: #fb923c; font-weight: 700; }
+  .mem-box.changed { background: rgba(52,211,153,0.15); border-color: #34d399; }
+
+  .mem-label {
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  .arrow {
+    font-size: 16px;
+    color: #34d399;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .arrow.show { opacity: 1; }
+
+  .slider-bar {
+    padding: 12px 16px;
+    background: #13152a;
+    border-top: 1px solid #2d3154;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .slider-bar input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #2d3154;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .slider-bar input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #059669;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(5,150,105,0.6);
+  }
+
+  .slider-label { font-size: 11px; color: #475569; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="toolbar">
+    <span class="toolbar-title">🧠 Con trỏ - Pointer</span>
+    <button class="btn-icon" onclick="goFirst()">⏮</button>
+    <button class="btn-icon" onclick="goPrev()">◀</button>
+    <button class="btn btn-play" onclick="togglePlay()" id="playBtn">▶ Chạy</button>
+    <button class="btn-icon" onclick="goNext()">▶</button>
+    <span class="speed-label">Tốc độ</span>
+    <select class="speed-select" id="speedSelect">
+      <option value="1500">🐢 Chậm</option>
+      <option value="800" selected>⚡ Bình thường</option>
+      <option value="350">🚀 Nhanh</option>
+    </select>
+    <span class="step-counter" id="stepCounter">1 / 1</span>
+  </div>
+
+  <div class="main">
+    <div class="code-panel">
+      <div class="code-lines" id="codeLines"></div>
+    </div>
+    <div class="info-panel">
+      <div class="status-badge"><div class="status-dot"></div><span>ĐANG THỰC THI</span></div>
+      <div class="explanation" id="explanation"></div>
+      <div class="section-title">Bộ nhớ (RAM)</div>
+      <div class="memory-grid">
+        <div class="mem-row" id="mem-x">
+          <span class="mem-addr">0x1000</span>
+          <div class="mem-box val" id="box-x">?</div>
+          <span class="mem-label">← x</span>
+        </div>
+        <div class="mem-row" id="mem-p">
+          <span class="mem-addr">0x2000</span>
+          <div class="mem-box ptr" id="box-p">?</div>
+          <span class="arrow" id="arrow-p">→ 0x1000</span>
+          <span class="mem-label" id="label-p">← p</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slider-bar">
+    <span class="slider-label" id="sliderMin">0</span>
+    <input type="range" id="slider" min="0" value="0" oninput="goToStep(parseInt(this.value))">
+    <span class="slider-label" id="sliderMax">0</span>
+  </div>
+</div>
+
+<script>
+const CODE = [
+  { html: '<span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>' },
+  { html: '<span class="kw">using namespace</span> std;' },
+  { html: '' },
+  { html: '<span class="kw">int</span> <span class="fn">main</span>() {' },
+  { html: '    <span class="kw">int</span> x = <span class="nu">10</span>;' },
+  { html: '    <span class="kw">int</span> *p = &amp;x;' },
+  { html: '' },
+  { html: '    <span class="fn">cout</span> <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="st">endl</span>;' },
+  { html: '    <span class="fn">cout</span> <span class="op">&lt;&lt;</span> &amp;x <span class="op">&lt;&lt;</span> <span class="st">endl</span>;' },
+  { html: '    <span class="fn">cout</span> <span class="op">&lt;&lt;</span> p <span class="op">&lt;&lt;</span> <span class="st">endl</span>;' },
+  { html: '    <span class="fn">cout</span> <span class="op">&lt;&lt;</span> *p <span class="op">&lt;&lt;</span> <span class="st">endl</span>;' },
+  { html: '' },
+  { html: '    *p = <span class="nu">99</span>;' },
+  { html: '    <span class="fn">cout</span> <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="st">endl</span>;' },
+  { html: '    <span class="kw">return</span> <span class="nu">0</span>;' },
+  { html: '}' },
+];
+
+const STEPS = [
+  {
+    line: 1,
+    explain: "Nạp thư viện <b>iostream</b>.",
+    x: null, p: null, arrow: false, output: "",
+    xActive: false, pActive: false
+  },
+  {
+    line: 4,
+    explain: "Bắt đầu hàm <b>main()</b>.",
+    x: null, p: null, arrow: false, output: "",
+    xActive: false, pActive: false
+  },
+  {
+    line: 5,
+    explain: "Khai báo <b>int x = 10</b>.<br>→ Máy tính cấp 1 ô nhớ tại địa chỉ <span style='color:#f59e0b'>0x1000</span>, lưu giá trị <span style='color:#fb923c'>10</span>.",
+    x: 10, p: null, arrow: false, output: "",
+    xActive: true, pActive: false
+  },
+  {
+    line: 6,
+    explain: "Khai báo <b>int *p = &x</b>.<br>→ <code>&x</code> là địa chỉ của x = <span style='color:#f59e0b'>0x1000</span><br>→ p lưu địa chỉ đó, p <b>trỏ vào</b> x.",
+    x: 10, p: "0x1000", arrow: true, output: "",
+    xActive: false, pActive: true
+  },
+  {
+    line: 8,
+    explain: "<code>cout &lt;&lt; x</code> — In <b>giá trị</b> của x = <span style='color:#fb923c'>10</span>.",
+    x: 10, p: "0x1000", arrow: true, output: "10",
+    xActive: true, pActive: false
+  },
+  {
+    line: 9,
+    explain: "<code>cout &lt;&lt; &x</code> — In <b>địa chỉ</b> của x = <span style='color:#f59e0b'>0x1000</span>.",
+    x: 10, p: "0x1000", arrow: true, output: "10\n0x1000",
+    xActive: true, pActive: false
+  },
+  {
+    line: 10,
+    explain: "<code>cout &lt;&lt; p</code> — In <b>giá trị của p</b> = địa chỉ mà p đang trỏ = <span style='color:#f59e0b'>0x1000</span>.<br>→ Giống hệt &x!",
+    x: 10, p: "0x1000", arrow: true, output: "10\n0x1000\n0x1000",
+    xActive: false, pActive: true
+  },
+  {
+    line: 11,
+    explain: "<code>cout &lt;&lt; *p</code> — Dereference: <b>đi theo địa chỉ</b> p đang trỏ, lấy giá trị tại đó.<br>→ *p = giá trị tại 0x1000 = <span style='color:#fb923c'>10</span>.",
+    x: 10, p: "0x1000", arrow: true, output: "10\n0x1000\n0x1000\n10",
+    xActive: true, pActive: true
+  },
+  {
+    line: 13,
+    explain: "<code>*p = 99</code> — Gán giá trị <span style='color:#fb923c'>99</span> vào ô nhớ mà p đang trỏ.<br>→ x bị thay đổi thành <span style='color:#fb923c'>99</span> dù không dùng x trực tiếp!",
+    x: 99, p: "0x1000", arrow: true, output: "10\n0x1000\n0x1000\n10",
+    xActive: true, pActive: true, xChanged: true
+  },
+  {
+    line: 14,
+    explain: "<code>cout &lt;&lt; x</code> — In giá trị x = <span style='color:#fb923c'>99</span>.<br>✅ x đã bị thay đổi qua con trỏ p!",
+    x: 99, p: "0x1000", arrow: true, output: "10\n0x1000\n0x1000\n10\n99",
+    xActive: true, pActive: false
+  },
+  {
+    line: 15,
+    explain: "✅ <b>Chương trình kết thúc!</b><br><br>Tóm tắt:<br>• <code>&x</code> = địa chỉ của x<br>• <code>p = &x</code> → p trỏ vào x<br>• <code>*p</code> = giá trị tại địa chỉ p trỏ tới",
+    x: 99, p: "0x1000", arrow: true, output: "10\n0x1000\n0x1000\n10\n99",
+    xActive: false, pActive: false
+  },
+];
+
+let current = 0, playing = false, timer = null;
+
+function renderCode() {
+  document.getElementById('codeLines').innerHTML = CODE.map((line, i) => `
+    <div class="code-line" id="line-${i+1}">
+      <span class="line-num">${i+1}</span>
+      <span class="line-code">${line.html || '&nbsp;'}</span>
+    </div>
+  `).join('');
+}
+
+function renderStep(idx) {
+  const s = STEPS[idx];
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const al = document.getElementById('line-' + s.line);
+  if (al) { al.classList.add('active'); al.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+
+  document.getElementById('explanation').innerHTML = s.explain;
+
+  // Memory
+  const memX = document.getElementById('mem-x');
+  const memP = document.getElementById('mem-p');
+  const boxX = document.getElementById('box-x');
+  const boxP = document.getElementById('box-p');
+  const arrow = document.getElementById('arrow-p');
+
+  memX.classList.toggle('active', s.x !== null);
+  memP.classList.toggle('active', s.p !== null);
+
+  boxX.textContent = s.x !== null ? s.x : '?';
+  boxX.classList.toggle('changed', !!s.xChanged);
+  boxX.style.borderColor = s.xActive ? '#34d399' : '';
+
+  boxP.textContent = s.p !== null ? s.p : '?';
+  boxP.style.borderColor = s.pActive ? '#34d399' : '';
+
+  arrow.classList.toggle('show', !!s.arrow);
+
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${STEPS.length}`;
+  document.getElementById('slider').value = idx;
+}
+
+function goToStep(idx) {
+  current = Math.max(0, Math.min(STEPS.length - 1, idx));
+  renderStep(current);
+}
+
+function goNext() { if (current < STEPS.length - 1) goToStep(current + 1); else stopPlay(); }
+function goPrev() { goToStep(current - 1); }
+function goFirst() { goToStep(0); }
+
+function togglePlay() { playing ? stopPlay() : startPlay(); }
+
+function startPlay() {
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸ Dừng';
+  const speed = parseInt(document.getElementById('speedSelect').value);
+  timer = setInterval(() => { if (current >= STEPS.length - 1) { stopPlay(); return; } goNext(); }, speed);
+}
+
+function stopPlay() {
+  playing = false;
+  clearInterval(timer);
+  document.getElementById('playBtn').textContent = '▶ Chạy';
+}
+
+renderCode();
+document.getElementById('slider').max = STEPS.length - 1;
+document.getElementById('sliderMax').textContent = STEPS.length - 1;
+goToStep(0);
+</script>
+</body>
+</html>

@@ -57,3 +57,11 @@ cout << *p << endl;    // 42
 delete p;  // giải phóng bộ nhớ — KHÔNG được quên!
 p = nullptr;
 ```
+## Trực quan hoá con trỏ
+
+<iframe 
+  src="/visualizer-pointer.html" 
+  width="100%" 
+  height="540px" 
+  style="border:none; border-radius:12px;">
+</iframe>

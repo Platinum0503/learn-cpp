@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOP Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 900px;
+    background: #1a1d2e;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #2d3154;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #13152a;
+    border-bottom: 1px solid #2d3154;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-title { font-size: 13px; font-weight: 600; color: #f472b6; letter-spacing: 0.05em; }
+
+  .btn-icon {
+    padding: 6px 10px;
+    background: #2d3154;
+    color: #94a3b8;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover { background: #3d4270; color: #e2e8f0; }
+
+  .btn-play {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-weight: 500;
+    background: linear-gradient(135deg, #be185d, #f472b6);
+    color: white;
+    box-shadow: 0 4px 12px rgba(190,24,93,0.4);
+    transition: all 0.15s;
+  }
+  .btn-play:hover { transform: translateY(-1px); }
+
+  .speed-label { font-size: 12px; color: #64748b; margin-left: 4px; }
+  .speed-select {
+    background: #2d3154; color: #e2e8f0; border: 1px solid #3d4270;
+    border-radius: 6px; padding: 5px 8px; font-size: 12px;
+    font-family: 'Be Vietnam Pro', sans-serif; cursor: pointer;
+  }
+
+  .step-counter {
+    margin-left: auto; font-size: 12px; color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+    background: #2d3154; padding: 5px 10px; border-radius: 6px;
+  }
+
+  .main { display: grid; grid-template-columns: 1fr 1fr; min-height: 360px; }
+
+  .code-panel { border-right: 1px solid #2d3154; overflow: hidden; }
+  .code-lines { padding: 12px 0; }
+
+  .code-line {
+    display: flex; align-items: center; padding: 3px 0;
+    transition: background 0.2s; border-left: 3px solid transparent;
+  }
+  .code-line.active { background: rgba(244,114,182,0.12); border-left-color: #f472b6; }
+
+  .line-num {
+    width: 40px; text-align: right; padding-right: 14px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: #374151; flex-shrink: 0; user-select: none;
+  }
+  .code-line.active .line-num { color: #be185d; }
+
+  .line-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: #cbd5e1; white-space: pre;
+  }
+
+  .kw { color: #c084fc; } .fn { color: #60a5fa; }
+  .nu { color: #fb923c; } .st { color: #4ade80; }
+  .cm { color: #475569; font-style: italic; } .tp { color: #f472b6; }
+
+  .info-panel { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+
+  .status-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #f472b6;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #f472b6; animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .explanation { font-size: 13px; line-height: 1.7; color: #cbd5e1; }
+
+  .section-title {
+    font-size: 11px; font-weight: 600; color: #475569;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  /* Object card */
+  .object-card {
+    background: #13152a;
+    border: 1px solid #3d4270;
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0.3;
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .object-card.active { opacity: 1; }
+  .object-card.pop { transform: scale(1.02); }
+
+  .object-header {
+    background: linear-gradient(135deg, #be185d22, #f472b622);
+    border-bottom: 1px solid #3d4270;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .object-type { font-size: 11px; color: #f472b6; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .object-name { font-size: 13px; color: #e2e8f0; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+
+  .object-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+
+  .field-row { display: flex; align-items: center; gap: 8px; }
+  .field-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #60a5fa; width: 60px; }
+  .field-val {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: #fb923c; font-weight: 700;
+    background: #2d3154; border: 1px solid #3d4270;
+    border-radius: 4px; padding: 2px 8px;
+    transition: all 0.3s;
+  }
+  .field-val.changed { background: rgba(244,114,182,0.15); border-color: #f472b6; }
+
+  .method-list { border-top: 1px solid #2d3154; padding-top: 8px; margin-top: 4px; }
+  .method-item { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #34d399; }
+
+  .output-label { font-size: 11px; color: #475569; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .output-box {
+    background: #0f1117; border: 1px solid #2d3154; border-radius: 8px;
+    padding: 10px 12px; font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: #4ade80; min-height: 36px; white-space: pre-line;
+  }
+
+  .slider-bar {
+    padding: 12px 16px; background: #13152a; border-top: 1px solid #2d3154;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .slider-bar input[type=range] {
+    flex: 1; -webkit-appearance: none; height: 4px;
+    background: #2d3154; border-radius: 2px; outline: none;
+  }
+  .slider-bar input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: #be185d; cursor: pointer; box-shadow: 0 0 8px rgba(190,24,93,0.6);
+  }
+  .slider-label { font-size: 11px; color: #475569; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="toolbar">
+    <span class="toolbar-title">🎭 OOP - Class & Object</span>
+    <button class="btn-icon" onclick="goFirst()">⏮</button>
+    <button class="btn-icon" onclick="goPrev()">◀</button>
+    <button class="btn-play" onclick="togglePlay()" id="playBtn">▶ Chạy</button>
+    <button class="btn-icon" onclick="goNext()">▶</button>
+    <span class="speed-label">Tốc độ</span>
+    <select class="speed-select" id="speedSelect">
+      <option value="1500">🐢 Chậm</option>
+      <option value="800" selected>⚡ Bình thường</option>
+      <option value="350">🚀 Nhanh</option>
+    </select>
+    <span class="step-counter" id="stepCounter">1 / 1</span>
+  </div>
+
+  <div class="main">
+    <div class="code-panel">
+      <div class="code-lines" id="codeLines"></div>
+    </div>
+    <div class="info-panel">
+      <div class="status-badge"><div class="status-dot"></div><span>ĐANG THỰC THI</span></div>
+      <div class="explanation" id="explanation"></div>
+
+      <div class="section-title">Object trong bộ nhớ</div>
+      <div class="object-card" id="objCard">
+        <div class="object-header">
+          <span class="object-type">SinhVien</span>
+          <span class="object-name" id="objName">sv</span>
+        </div>
+        <div class="object-body">
+          <div class="field-row">
+            <span class="field-name">ten</span>
+            <span class="field-val" id="f-ten">?</span>
+          </div>
+          <div class="field-row">
+            <span class="field-name">tuoi</span>
+            <span class="field-val" id="f-tuoi">?</span>
+          </div>
+          <div class="field-row">
+            <span class="field-name">gpa</span>
+            <span class="field-val" id="f-gpa">?</span>
+          </div>
+          <div class="method-list">
+            <div class="method-item">▸ giaoThien()</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="output-label">Output</div>
+      <div class="output-box" id="outputBox"></div>
+    </div>
+  </div>
+
+  <div class="slider-bar">
+    <span class="slider-label">0</span>
+    <input type="range" id="slider" min="0" value="0" oninput="goToStep(parseInt(this.value))">
+    <span class="slider-label" id="sliderMax">0</span>
+  </div>
+</div>
+
+<script>
+const CODE = [
+  { html: '<span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>' },
+  { html: '<span class="kw">using namespace</span> std;' },
+  { html: '' },
+  { html: '<span class="kw">class</span> <span class="tp">SinhVien</span> {' },
+  { html: '<span class="kw">public</span>:' },
+  { html: '    string ten;' },
+  { html: '    <span class="kw">int</span> tuoi;' },
+  { html: '    <span class="kw">float</span> gpa;' },
+  { html: '' },
+  { html: '    <span class="kw">void</span> <span class="fn">giaoThien</span>() {' },
+  { html: '        <span class="fn">cout</span> &lt;&lt; <span class="st">"Xin chao, minh la "</span>' },
+  { html: '             &lt;&lt; ten &lt;&lt; endl;' },
+  { html: '    }' },
+  { html: '};' },
+  { html: '' },
+  { html: '<span class="kw">int</span> <span class="fn">main</span>() {' },
+  { html: '    <span class="tp">SinhVien</span> sv;' },
+  { html: '    sv.ten = <span class="st">"Dang"</span>;' },
+  { html: '    sv.tuoi = <span class="nu">19</span>;' },
+  { html: '    sv.gpa = <span class="nu">3.5</span>;' },
+  { html: '    sv.<span class="fn">giaoThien</span>();' },
+  { html: '    <span class="kw">return</span> <span class="nu">0</span>;' },
+  { html: '}' },
+];
+
+const STEPS = [
+  {
+    line: 4,
+    explain: "Định nghĩa <b>class SinhVien</b> — đây là bản thiết kế, chưa tạo object nào.",
+    obj: false, ten: "?", tuoi: "?", gpa: "?", output: "",
+    changed: []
+  },
+  {
+    line: 5,
+    explain: "<b>public:</b> — các thuộc tính và phương thức bên dưới có thể truy cập từ bên ngoài class.",
+    obj: false, ten: "?", tuoi: "?", gpa: "?", output: "",
+    changed: []
+  },
+  {
+    line: 6,
+    explain: "Khai báo thuộc tính <b>string ten</b> — mỗi object SinhVien sẽ có một tên riêng.",
+    obj: false, ten: "?", tuoi: "?", gpa: "?", output: "",
+    changed: []
+  },
+  {
+    line: 10,
+    explain: "Định nghĩa phương thức <b>giaoThien()</b> — hành động mà object có thể thực hiện.",
+    obj: false, ten: "?", tuoi: "?", gpa: "?", output: "",
+    changed: []
+  },
+  {
+    line: 16,
+    explain: "Bắt đầu hàm <b>main()</b>.",
+    obj: false, ten: "?", tuoi: "?", gpa: "?", output: "",
+    changed: []
+  },
+  {
+    line: 17,
+    explain: "<b>SinhVien sv;</b> — Tạo object <code>sv</code> từ class SinhVien.<br>→ Máy cấp bộ nhớ cho sv, các thuộc tính chưa có giá trị.",
+    obj: true, ten: "?", tuoi: "?", gpa: "?", output: "",
+    changed: []
+  },
+  {
+    line: 18,
+    explain: "<b>sv.ten = \"Dang\"</b> — Gán giá trị cho thuộc tính <code>ten</code> của object sv.",
+    obj: true, ten: '"Dang"', tuoi: "?", gpa: "?", output: "",
+    changed: ["ten"]
+  },
+  {
+    line: 19,
+    explain: "<b>sv.tuoi = 19</b> — Gán giá trị cho thuộc tính <code>tuoi</code>.",
+    obj: true, ten: '"Dang"', tuoi: "19", gpa: "?", output: "",
+    changed: ["tuoi"]
+  },
+  {
+    line: 20,
+    explain: "<b>sv.gpa = 3.5</b> — Gán giá trị cho thuộc tính <code>gpa</code>.",
+    obj: true, ten: '"Dang"', tuoi: "19", gpa: "3.5", output: "",
+    changed: ["gpa"]
+  },
+  {
+    line: 21,
+    explain: "<b>sv.giaoThien()</b> — Gọi phương thức của object sv.<br>→ Bên trong hàm, <code>ten</code> là <code>sv.ten</code> = \"Dang\".",
+    obj: true, ten: '"Dang"', tuoi: "19", gpa: "3.5", output: "",
+    changed: []
+  },
+  {
+    line: 11,
+    explain: "Thực thi dòng <code>cout &lt;&lt; \"Xin chao, minh la \" &lt;&lt; ten</code><br>→ In ra màn hình.",
+    obj: true, ten: '"Dang"', tuoi: "19", gpa: "3.5", output: "Xin chao, minh la Dang",
+    changed: []
+  },
+  {
+    line: 22,
+    explain: "✅ <b>Chương trình kết thúc!</b><br><br>Tóm tắt:<br>• <b>Class</b> = bản thiết kế<br>• <b>Object</b> = sản phẩm tạo từ bản thiết kế<br>• Dùng <code>.</code> để truy cập thuộc tính và phương thức",
+    obj: true, ten: '"Dang"', tuoi: "19", gpa: "3.5", output: "Xin chao, minh la Dang",
+    changed: []
+  },
+];
+
+let current = 0, playing = false, timer = null;
+
+function renderCode() {
+  document.getElementById('codeLines').innerHTML = CODE.map((line, i) => `
+    <div class="code-line" id="line-${i+1}">
+      <span class="line-num">${i+1}</span>
+      <span class="line-code">${line.html || '&nbsp;'}</span>
+    </div>
+  `).join('');
+}
+
+function renderStep(idx) {
+  const s = STEPS[idx];
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const al = document.getElementById('line-' + s.line);
+  if (al) { al.classList.add('active'); al.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+
+  document.getElementById('explanation').innerHTML = s.explain;
+  document.getElementById('outputBox').textContent = s.output;
+
+  const card = document.getElementById('objCard');
+  card.classList.toggle('active', s.obj);
+  card.classList.toggle('pop', s.changed.length > 0);
+
+  ['ten', 'tuoi', 'gpa'].forEach(f => {
+    const el = document.getElementById('f-' + f);
+    el.textContent = s[f];
+    el.classList.toggle('changed', s.changed.includes(f));
+  });
+
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${STEPS.length}`;
+  document.getElementById('slider').value = idx;
+}
+
+function goToStep(idx) {
+  current = Math.max(0, Math.min(STEPS.length - 1, idx));
+  renderStep(current);
+}
+
+function goNext() { if (current < STEPS.length - 1) goToStep(current + 1); else stopPlay(); }
+function goPrev() { goToStep(current - 1); }
+function goFirst() { goToStep(0); }
+
+function togglePlay() { playing ? stopPlay() : startPlay(); }
+
+function startPlay() {
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸ Dừng';
+  const speed = parseInt(document.getElementById('speedSelect').value);
+  timer = setInterval(() => { if (current >= STEPS.length - 1) { stopPlay(); return; } goNext(); }, speed);
+}
+
+function stopPlay() {
+  playing = false;
+  clearInterval(timer);
+  document.getElementById('playBtn').textContent = '▶ Chạy';
+}
+
+renderCode();
+document.getElementById('slider').max = STEPS.length - 1;
+document.getElementById('sliderMax').textContent = STEPS.length - 1;
+goToStep(0);
+</script>
+</body>
+</html>
