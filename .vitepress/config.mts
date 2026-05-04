@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Learn C++",
   description: "Tài liệu học C++ từ cơ bản đến nâng cao",
+  srcDir: 'docs',
   themeConfig: {
     nav: [
       { text: 'Trang chủ', link: '/' },

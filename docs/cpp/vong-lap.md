@@ -68,3 +68,11 @@ for (int i = 1; i <= 3; i++) {
 2   4   6
 3   6   9
 ```
+## Trực quan hoá vòng lặp
+
+<iframe 
+  src="/visualizer.html" 
+  width="100%" 
+  height="520px" 
+  style="border:none; border-radius:12px;">
+</iframe>
