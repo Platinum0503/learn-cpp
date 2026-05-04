@@ -34,3 +34,11 @@ for (int i = 0; i < 2; i++) {
 ```
 
 **Output:**
+## Trực quan hoá mảng
+
+<iframe 
+  src="/visualizer-mang.html" 
+  width="100%" 
+  height="540px" 
+  style="border:none; border-radius:12px;">
+</iframe>

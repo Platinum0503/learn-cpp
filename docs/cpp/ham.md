@@ -73,3 +73,11 @@ int main() {
     return 0;
 }
 ```
+## Trực quan hoá hàm
+
+<iframe 
+  src="/visualizer-ham.html" 
+  width="100%" 
+  height="540px" 
+  style="border:none; border-radius:12px;">
+</iframe>

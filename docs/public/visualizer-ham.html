@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hàm Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Be Vietnam Pro', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .container { width: 100%; max-width: 900px; background: #1a1d2e; border-radius: 16px; overflow: hidden; border: 1px solid #2d3154; box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
+  .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #13152a; border-bottom: 1px solid #2d3154; flex-wrap: wrap; }
+  .toolbar-title { font-size: 13px; font-weight: 600; color: #60a5fa; letter-spacing: 0.05em; }
+  .btn-icon { padding: 6px 10px; background: #2d3154; color: #94a3b8; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; transition: all 0.15s; }
+  .btn-icon:hover { background: #3d4270; color: #e2e8f0; }
+  .btn-play { padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-family: 'Be Vietnam Pro', sans-serif; font-weight: 500; background: linear-gradient(135deg, #1d4ed8, #60a5fa); color: white; box-shadow: 0 4px 12px rgba(29,78,216,0.4); transition: all 0.15s; }
+  .btn-play:hover { transform: translateY(-1px); }
+  .speed-label { font-size: 12px; color: #64748b; margin-left: 4px; }
+  .speed-select { background: #2d3154; color: #e2e8f0; border: 1px solid #3d4270; border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: 'Be Vietnam Pro', sans-serif; cursor: pointer; }
+  .step-counter { margin-left: auto; font-size: 12px; color: #64748b; font-family: 'JetBrains Mono', monospace; background: #2d3154; padding: 5px 10px; border-radius: 6px; }
+  .main { display: grid; grid-template-columns: 1fr 1fr; min-height: 360px; }
+  .code-panel { border-right: 1px solid #2d3154; overflow: hidden; }
+  .code-lines { padding: 12px 0; }
+  .code-line { display: flex; align-items: center; padding: 3px 0; transition: background 0.2s; border-left: 3px solid transparent; }
+  .code-line.active { background: rgba(96,165,250,0.12); border-left-color: #60a5fa; }
+  .line-num { width: 40px; text-align: right; padding-right: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #374151; flex-shrink: 0; user-select: none; }
+  .code-line.active .line-num { color: #1d4ed8; }
+  .line-code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #cbd5e1; white-space: pre; }
+  .kw { color: #c084fc; } .fn { color: #60a5fa; } .nu { color: #fb923c; } .st { color: #4ade80; }
+  .info-panel { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+  .status-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #60a5fa; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #60a5fa; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .explanation { font-size: 13px; line-height: 1.7; color: #cbd5e1; }
+  .section-title { font-size: 11px; font-weight: 600; color: #475569; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* Call stack */
+  .call-stack { display: flex; flex-direction: column-reverse; gap: 6px; }
+  .stack-frame {
+    background: #13152a; border: 1px solid #3d4270; border-radius: 8px;
+    padding: 8px 12px; transition: all 0.3s; opacity: 0.3;
+  }
+  .stack-frame.active { opacity: 1; border-color: #60a5fa; background: rgba(96,165,250,0.08); }
+  .stack-frame.highlight { border-color: #f59e0b; background: rgba(245,158,11,0.08); }
+  .frame-name { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #60a5fa; font-weight: 700; margin-bottom: 4px; }
+  .frame-vars { display: flex; flex-wrap: wrap; gap: 6px; }
+  .var-chip { background: #2d3154; border: 1px solid #3d4270; border-radius: 6px; padding: 3px 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .var-name { color: #60a5fa; } .var-eq { color: #475569; margin: 0 3px; } .var-val { color: #fb923c; font-weight: 700; }
+  .return-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #4ade80; margin-top: 4px; }
+
+  .output-label { font-size: 11px; color: #475569; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+  .output-box { background: #0f1117; border: 1px solid #2d3154; border-radius: 8px; padding: 10px 12px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #4ade80; min-height: 36px; white-space: pre-line; }
+
+  .slider-bar { padding: 12px 16px; background: #13152a; border-top: 1px solid #2d3154; display: flex; align-items: center; gap: 10px; }
+  .slider-bar input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: #2d3154; border-radius: 2px; outline: none; }
+  .slider-bar input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #1d4ed8; cursor: pointer; box-shadow: 0 0 8px rgba(29,78,216,0.6); }
+  .slider-label { font-size: 11px; color: #475569; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="toolbar">
+    <span class="toolbar-title">⚙️ Hàm - Function</span>
+    <button class="btn-icon" onclick="goFirst()">⏮</button>
+    <button class="btn-icon" onclick="goPrev()">◀</button>
+    <button class="btn-play" onclick="togglePlay()" id="playBtn">▶ Chạy</button>
+    <button class="btn-icon" onclick="goNext()">▶</button>
+    <span class="speed-label">Tốc độ</span>
+    <select class="speed-select" id="speedSelect">
+      <option value="1500">🐢 Chậm</option>
+      <option value="800" selected>⚡ Bình thường</option>
+      <option value="350">🚀 Nhanh</option>
+    </select>
+    <span class="step-counter" id="stepCounter">1 / 1</span>
+  </div>
+
+  <div class="main">
+    <div class="code-panel">
+      <div class="code-lines" id="codeLines"></div>
+    </div>
+    <div class="info-panel">
+      <div class="status-badge"><div class="status-dot"></div><span>ĐANG THỰC THI</span></div>
+      <div class="explanation" id="explanation"></div>
+      <div class="section-title">Call Stack</div>
+      <div class="call-stack" id="callStack">
+        <div class="stack-frame" id="frame-main">
+          <div class="frame-name">main()</div>
+          <div class="frame-vars" id="vars-main"></div>
+        </div>
+        <div class="stack-frame" id="frame-tong">
+          <div class="frame-name">tong(a, b)</div>
+          <div class="frame-vars" id="vars-tong"></div>
+          <div class="return-val" id="ret-tong"></div>
+        </div>
+      </div>
+      <div class="output-label">Output</div>
+      <div class="output-box" id="outputBox"></div>
+    </div>
+  </div>
+
+  <div class="slider-bar">
+    <span class="slider-label">0</span>
+    <input type="range" id="slider" min="0" value="0" oninput="goToStep(parseInt(this.value))">
+    <span class="slider-label" id="sliderMax">0</span>
+  </div>
+</div>
+
+<script>
+const CODE = [
+  { html: '<span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>' },
+  { html: '<span class="kw">using namespace</span> std;' },
+  { html: '' },
+  { html: '<span class="kw">int</span> <span class="fn">tong</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {' },
+  { html: '    <span class="kw">return</span> a + b;' },
+  { html: '}' },
+  { html: '' },
+  { html: '<span class="kw">int</span> <span class="fn">main</span>() {' },
+  { html: '    <span class="kw">int</span> x = <span class="nu">3</span>;' },
+  { html: '    <span class="kw">int</span> y = <span class="nu">4</span>;' },
+  { html: '    <span class="kw">int</span> kq = <span class="fn">tong</span>(x, y);' },
+  { html: '    <span class="fn">cout</span> &lt;&lt; <span class="st">"Tong: "</span> &lt;&lt; kq &lt;&lt; endl;' },
+  { html: '    <span class="kw">return</span> <span class="nu">0</span>;' },
+  { html: '}' },
+];
+
+const STEPS = [
+  { line: 4, explain: "Định nghĩa hàm <b>tong(a, b)</b> — nhận 2 tham số int, trả về int.<br>Hàm chưa được gọi, chỉ đang định nghĩa.", mainActive: false, tongActive: false, mainVars: {}, tongVars: {}, ret: "", output: "" },
+  { line: 8, explain: "Bắt đầu hàm <b>main()</b> — chương trình bắt đầu chạy từ đây.", mainActive: true, tongActive: false, mainVars: {}, tongVars: {}, ret: "", output: "" },
+  { line: 9, explain: "Khai báo <b>int x = 3</b> trong main.", mainActive: true, tongActive: false, mainVars: { x: 3 }, tongVars: {}, ret: "", output: "" },
+  { line: 10, explain: "Khai báo <b>int y = 4</b> trong main.", mainActive: true, tongActive: false, mainVars: { x: 3, y: 4 }, tongVars: {}, ret: "", output: "" },
+  { line: 11, explain: "Gọi hàm <b>tong(x, y)</b> = tong(3, 4).<br>→ Chương trình <b>nhảy vào</b> hàm tong, tạm dừng main.<br>→ Call stack: main() → tong() được đẩy lên.", mainActive: true, tongActive: true, mainVars: { x: 3, y: 4 }, tongVars: { a: 3, b: 4 }, ret: "", output: "", highlight: true },
+  { line: 4, explain: "Vào hàm <b>tong(a=3, b=4)</b>.<br>Tham số a nhận giá trị của x (=3), b nhận giá trị của y (=4).", mainActive: true, tongActive: true, mainVars: { x: 3, y: 4 }, tongVars: { a: 3, b: 4 }, ret: "", output: "" },
+  { line: 5, explain: "<b>return a + b</b> = 3 + 4 = <span style='color:#fb923c'>7</span>.<br>→ Hàm tính xong, chuẩn bị trả giá trị về.", mainActive: true, tongActive: true, mainVars: { x: 3, y: 4 }, tongVars: { a: 3, b: 4 }, ret: "→ return 7", output: "" },
+  { line: 11, explain: "Hàm tong trả về <b>7</b>, tong() bị <b>pop khỏi call stack</b>.<br>→ Quay về main(), kq = 7.", mainActive: true, tongActive: false, mainVars: { x: 3, y: 4, kq: 7 }, tongVars: {}, ret: "", output: "" },
+  { line: 12, explain: "<b>cout &lt;&lt; \"Tong: \" &lt;&lt; kq</b> — In kết quả ra màn hình.", mainActive: true, tongActive: false, mainVars: { x: 3, y: 4, kq: 7 }, tongVars: {}, ret: "", output: "Tong: 7" },
+  { line: 13, explain: "✅ <b>Chương trình kết thúc!</b><br><br>Tóm tắt:<br>• Hàm giúp tái sử dụng code<br>• Khi gọi hàm, tạo stack frame mới<br>• Sau return, stack frame bị xóa", mainActive: true, tongActive: false, mainVars: { x: 3, y: 4, kq: 7 }, tongVars: {}, ret: "", output: "Tong: 7" },
+];
+
+let current = 0, playing = false, timer = null;
+
+function renderCode() {
+  document.getElementById('codeLines').innerHTML = CODE.map((line, i) => `
+    <div class="code-line" id="line-${i+1}">
+      <span class="line-num">${i+1}</span>
+      <span class="line-code">${line.html || '&nbsp;'}</span>
+    </div>
+  `).join('');
+}
+
+function renderVars(containerId, vars) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = Object.entries(vars).map(([k,v]) =>
+    `<div class="var-chip"><span class="var-name">${k}</span><span class="var-eq">=</span><span class="var-val">${v}</span></div>`
+  ).join('') || '<span style="color:#374151;font-size:11px">trống</span>';
+}
+
+function renderStep(idx) {
+  const s = STEPS[idx];
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const al = document.getElementById('line-' + s.line);
+  if (al) { al.classList.add('active'); al.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+
+  document.getElementById('explanation').innerHTML = s.explain;
+  document.getElementById('outputBox').textContent = s.output;
+
+  document.getElementById('frame-main').classList.toggle('active', s.mainActive);
+  document.getElementById('frame-tong').classList.toggle('active', s.tongActive);
+  document.getElementById('frame-tong').classList.toggle('highlight', !!s.highlight);
+
+  renderVars('vars-main', s.mainVars);
+  renderVars('vars-tong', s.tongVars);
+  document.getElementById('ret-tong').textContent = s.ret;
+
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${STEPS.length}`;
+  document.getElementById('slider').value = idx;
+}
+
+function goToStep(idx) { current = Math.max(0, Math.min(STEPS.length - 1, idx)); renderStep(current); }
+function goNext() { if (current < STEPS.length - 1) goToStep(current + 1); else stopPlay(); }
+function goPrev() { goToStep(current - 1); }
+function goFirst() { goToStep(0); }
+function togglePlay() { playing ? stopPlay() : startPlay(); }
+function startPlay() {
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸ Dừng';
+  const speed = parseInt(document.getElementById('speedSelect').value);
+  timer = setInterval(() => { if (current >= STEPS.length - 1) { stopPlay(); return; } goNext(); }, speed);
+}
+function stopPlay() { playing = false; clearInterval(timer); document.getElementById('playBtn').textContent = '▶ Chạy'; }
+
+renderCode();
+document.getElementById('slider').max = STEPS.length - 1;
+document.getElementById('sliderMax').textContent = STEPS.length - 1;
+goToStep(0);
+</script>
+</body>
+</html>
