@@ -8,10 +8,10 @@ hero:
   actions:
     - theme: brand
       text: Bắt đầu học
-      link: /docs/cpp/tong-quan
+      link: /cpp/tong-quan
     - theme: alt
       text: Xem ví dụ
-      link: /docs/cpp/vi-du
+      link: /cpp/vi-du
 
 features:
   - title: Con trỏ & Bộ nhớ
