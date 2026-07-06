@@ -13,30 +13,30 @@ export default defineConfig({
       {
         text: 'Cơ bản',
         items: [
-          { text: 'Tổng quan C++', link: '/docs/cpp/tong-quan' },
-          { text: 'Biến & Kiểu dữ liệu', link: '/docs/cpp/bien-kieu-du-lieu' },
-          { text: 'Câu lệnh điều kiện', link: '/docs/cpp/dieu-kien' },
-          { text: 'Vòng lặp', link: '/docs/cpp/vong-lap' },
-          { text: 'Hàm', link: '/docs/cpp/ham' },
-          { text: 'Mảng', link: '/docs/cpp/mang' },
+          { text: 'Tổng quan C++', link: '/cpp/tong-quan' },
+          { text: 'Biến & Kiểu dữ liệu', link: '/cpp/bien-kieu-du-lieu' },
+          { text: 'Câu lệnh điều kiện', link: '/cpp/dieu-kien' },
+          { text: 'Vòng lặp', link: '/cpp/vong-lap' },
+          { text: 'Hàm', link: '/cpp/ham' },
+          { text: 'Mảng', link: '/cpp/mang' },
         ]
       },
       {
         text: 'Nâng cao',
         items: [
-          { text: 'Con trỏ (Pointer)', link: '/docs/cpp/pointer' },
-          { text: 'OOP - Class & Object', link: '/docs/cpp/oop-class' },
-          { text: 'Kế thừa', link: '/docs/cpp/ke-thua' },
-          { text: 'Đa hình', link: '/docs/cpp/da-hinh' },
-          { text: 'Template', link: '/docs/cpp/template' },
-          { text: 'STL cơ bản', link: '/docs/cpp/stl' },
+          { text: 'Con trỏ (Pointer)', link: '/cpp/pointer' },
+          { text: 'OOP - Class & Object', link: '/cpp/oop-class' },
+          { text: 'Kế thừa', link: '/cpp/ke-thua' },
+          { text: 'Đa hình', link: '/cpp/da-hinh' },
+          { text: 'Template', link: '/cpp/template' },
+          { text: 'STL cơ bản', link: '/cpp/stl' },
         ]
       },
       {
         text: 'Thực hành',
         items: [
-          { text: 'Ví dụ thực tế', link: '/docs/cpp/vi-du' },
-          { text: 'Câu hỏi thường gặp', link: '/docs/cpp/faq' },
+          { text: 'Ví dụ thực tế', link: '/cpp/vi-du' },
+          { text: 'Câu hỏi thường gặp', link: '/cpp/faq' },
         ]
       }
     ],
