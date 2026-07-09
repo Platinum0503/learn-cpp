@@ -50,3 +50,11 @@ switch (ngay) {
 **Output:** `Thu Tu`
 
 > ⚠️ Đừng quên `break` trong mỗi case, không thì code sẽ chạy tiếp xuống các case bên dưới.
+## Trực quan hoá
+
+<iframe 
+  src="/visualizer-dieukien.html" 
+  width="100%" 
+  height="540px" 
+  style="border:none; border-radius:12px;">
+</iframe>
