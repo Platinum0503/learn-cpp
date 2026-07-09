@@ -43,3 +43,7 @@
     transition: none !important;
   }
 }
+/* Ẩn feature card mặc định, dùng bản custom thay thế */
+.VPHome .VPFeatures {
+  display: none;
+}
