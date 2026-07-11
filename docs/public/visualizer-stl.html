@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ Visualizer - STL</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Be Vietnam Pro', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 900px;
+    background: #1a1d2e;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #2d3154;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #13152a;
+    border-bottom: 1px solid #2d3154;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a78bfa;
+    letter-spacing: 0.05em;
+    margin-right: 4px;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+
+  .btn-icon {
+    padding: 6px 10px;
+    background: #2d3154;
+    color: #94a3b8;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .btn-icon:hover { background: #3d4270; color: #e2e8f0; }
+
+  .btn-play {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.4);
+  }
+  .btn-play:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124,58,237,0.5); }
+
+  .speed-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-left: 4px;
+  }
+
+  .speed-select {
+    background: #2d3154;
+    color: #e2e8f0;
+    border: 1px solid #3d4270;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: 'Be Vietnam Pro', sans-serif;
+    cursor: pointer;
+  }
+
+  .step-counter {
+    margin-left: auto;
+    font-size: 12px;
+    color: #64748b;
+    font-family: 'JetBrains Mono', monospace;
+    background: #2d3154;
+    padding: 5px 10px;
+    border-radius: 6px;
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    min-height: 320px;
+  }
+
+  .code-panel {
+    border-right: 1px solid #2d3154;
+    overflow-y: auto;
+    max-height: 460px;
+  }
+
+  .code-lines {
+    padding: 12px 0;
+  }
+
+  .code-line {
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+    transition: background 0.2s;
+    border-left: 3px solid transparent;
+  }
+
+  .code-line.active {
+    background: rgba(124, 58, 237, 0.15);
+    border-left-color: #a855f7;
+  }
+
+  .line-num {
+    width: 40px;
+    text-align: right;
+    padding-right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #374151;
+    flex-shrink: 0;
+    user-select: none;
+  }
+
+  .code-line.active .line-num { color: #7c3aed; }
+
+  .line-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #cbd5e1;
+    white-space: pre;
+  }
+
+  .kw { color: #c084fc; }
+  .fn { color: #60a5fa; }
+  .nu { color: #fb923c; }
+  .st { color: #4ade80; }
+  .cm { color: #475569; font-style: italic; }
+  .op { color: #94a3b8; }
+  .ty { color: #f472b6; }
+
+  .info-panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: #a855f7;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #a855f7;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .explanation {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #cbd5e1;
+    min-height: 58px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .vector-visual {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .vec-box {
+    border: 1px solid #2d3154;
+    background: #0f1117;
+    border-radius: 6px;
+    padding: 6px 10px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    min-width: 30px;
+    transition: all 0.25s ease;
+  }
+
+  .vec-box.active {
+    border-color: #a855f7;
+    background: rgba(124, 58, 237, 0.15);
+    transform: translateY(-3px);
+  }
+
+  .vec-box.new {
+    border-color: #4ade80;
+  }
+
+  .vec-index {
+    display: block;
+    font-size: 10px;
+    color: #475569;
+  }
+
+  .vec-value {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e8f0;
+  }
+
+  .vec-box.active .vec-value { color: #c084fc; }
+
+  .vars-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .var-chip {
+    background: #2d3154;
+    border: 1px solid #3d4270;
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  .var-name { color: #60a5fa; }
+  .var-eq { color: #475569; margin: 0 4px; }
+  .var-val { color: #fb923c; font-weight: 700; }
+
+  .output-box {
+    background: #0f1117;
+    border: 1px solid #2d3154;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #4ade80;
+    min-height: 30px;
+  }
+
+  .slider-bar {
+    padding: 12px 16px;
+    background: #13152a;
+    border-top: 1px solid #2d3154;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .slider-bar input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: #2d3154;
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .slider-bar input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #7c3aed;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(124,58,237,0.6);
+  }
+
+  .slider-label { font-size: 11px; color: #475569; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="toolbar">
+    <span class="toolbar-title">⚡ Trực quan hoá</span>
+    <button class="btn-icon" onclick="goFirst()" title="Đầu">⏮</button>
+    <button class="btn-icon" onclick="goPrev()" title="Trước">◀</button>
+    <button class="btn btn-play" onclick="togglePlay()" id="playBtn">▶ Chạy</button>
+    <button class="btn-icon" onclick="goNext()" title="Tiếp">▶</button>
+    <span class="speed-label">Tốc độ</span>
+    <select class="speed-select" id="speedSelect">
+      <option value="1200">🐢 Chậm</option>
+      <option value="700" selected>⚡ Bình thường</option>
+      <option value="300">🚀 Nhanh</option>
+    </select>
+    <span class="step-counter" id="stepCounter">1 / 1</span>
+  </div>
+
+  <div class="main">
+    <div class="code-panel">
+      <div class="code-lines" id="codeLines"></div>
+    </div>
+    <div class="info-panel">
+      <div class="status-badge"><div class="status-dot"></div><span id="statusTxt">ĐANG THỰC THI</span></div>
+      <div class="explanation" id="explanation">Chọn bước để bắt đầu.</div>
+
+      <div class="section-title">Vector trong bộ nhớ</div>
+      <div class="vector-visual" id="vectorVisual"></div>
+
+      <div class="vars-grid" id="varsGrid"></div>
+
+      <div class="section-title">Output</div>
+      <div class="output-box" id="outputBox"></div>
+    </div>
+  </div>
+
+  <div class="slider-bar">
+    <span class="slider-label" id="sliderMin">0</span>
+    <input type="range" id="slider" min="0" value="0" oninput="goToStep(parseInt(this.value))">
+    <span class="slider-label" id="sliderMax">0</span>
+  </div>
+</div>
+
+<script>
+const STEPS = [
+  {
+    line: 8,
+    explain: "Bắt đầu hàm <b>main()</b>.",
+    arr: [], hi: null, output: ""
+  },
+  {
+    line: 9,
+    explain: "Khai báo <b>vector&lt;int&gt; v</b> với 4 phần tử ban đầu. Khác mảng thường, vector có thể <b>tự thay đổi kích thước</b>.",
+    arr: [5, 2, 8, 1], hi: null, output: ""
+  },
+  {
+    line: 10,
+    explain: "Gọi <b>v.push_back(9)</b> — thêm phần tử <b>9</b> vào <b>cuối</b> vector. Kích thước tự tăng từ 4 lên 5, không cần khai báo lại.",
+    arr: [5, 2, 8, 1, 9], hi: 4, output: ""
+  },
+  {
+    line: 11,
+    explain: "Gọi <b>sort(v.begin(), v.end())</b> — hàm có sẵn trong thư viện <code>&lt;algorithm&gt;</code>, tự sắp xếp toàn bộ vector <b>tăng dần</b>. Không cần tự viết thuật toán sắp xếp!",
+    arr: [1, 2, 5, 8, 9], hi: null, output: ""
+  },
+  {
+    line: 13,
+    explain: "Vòng lặp <b>for (int x : v)</b> — duyệt qua từng phần tử của vector. Bắt đầu với phần tử đầu tiên: x = 1.",
+    arr: [1, 2, 5, 8, 9], hi: 0, output: "1 "
+  },
+  {
+    line: 13,
+    explain: "Tiếp tục duyệt: x = 2.",
+    arr: [1, 2, 5, 8, 9], hi: 1, output: "1 2 "
+  },
+  {
+    line: 13,
+    explain: "Tiếp tục duyệt: x = 5.",
+    arr: [1, 2, 5, 8, 9], hi: 2, output: "1 2 5 "
+  },
+  {
+    line: 13,
+    explain: "Tiếp tục duyệt: x = 8.",
+    arr: [1, 2, 5, 8, 9], hi: 3, output: "1 2 5 8 "
+  },
+  {
+    line: 13,
+    explain: "Tiếp tục duyệt: x = 9. Đây là phần tử cuối cùng.",
+    arr: [1, 2, 5, 8, 9], hi: 4, output: "1 2 5 8 9 "
+  },
+  {
+    line: 16,
+    explain: "Hàm <b>return 0</b> — kết thúc chương trình.",
+    arr: [1, 2, 5, 8, 9], hi: null, output: "1 2 5 8 9 "
+  },
+  {
+    line: 17,
+    explain: "✅ <b>Chương trình kết thúc!</b> STL (Standard Template Library) cung cấp sẵn <code>vector</code>, <code>sort</code>, và nhiều công cụ khác — giúp bạn không phải tự viết lại từ đầu.",
+    arr: [1, 2, 5, 8, 9], hi: null, output: "1 2 5 8 9 "
+  }
+];
+
+const CODE = [
+  { text: '#include <iostream>', html: '<span class="kw">#include</span> <span class="st">&lt;iostream&gt;</span>' },
+  { text: '#include <vector>', html: '<span class="kw">#include</span> <span class="st">&lt;vector&gt;</span>' },
+  { text: '#include <algorithm>', html: '<span class="kw">#include</span> <span class="st">&lt;algorithm&gt;</span>' },
+  { text: 'using namespace std;', html: '<span class="kw">using namespace</span> std;' },
+  { text: '', html: '' },
+  { text: 'int main() {', html: '<span class="kw">int</span> <span class="fn">main</span>() {' },
+  { text: '    vector<int> v = {5, 2, 8, 1};', html: '    <span class="ty">vector</span>&lt;<span class="kw">int</span>&gt; v = {<span class="nu">5</span>, <span class="nu">2</span>, <span class="nu">8</span>, <span class="nu">1</span>};' },
+  { text: '    v.push_back(9);', html: '    v.<span class="fn">push_back</span>(<span class="nu">9</span>);' },
+  { text: '    sort(v.begin(), v.end());', html: '    <span class="fn">sort</span>(v.begin(), v.end());' },
+  { text: '', html: '' },
+  { text: '    for (int x : v) {', html: '    <span class="kw">for</span> (<span class="kw">int</span> x : v) {' },
+  { text: '        cout << x << " ";', html: '        <span class="fn">cout</span> <span class="op">&lt;&lt;</span> x <span class="op">&lt;&lt;</span> <span class="st">" "</span>;' },
+  { text: '    }', html: '    }' },
+  { text: '', html: '' },
+  { text: '    return 0;', html: '    <span class="kw">return</span> <span class="nu">0</span>;' },
+  { text: '}', html: '}' },
+];
+
+let current = 0;
+let playing = false;
+let timer = null;
+
+function renderCode() {
+  const el = document.getElementById('codeLines');
+  el.innerHTML = CODE.map((line, i) => `
+    <div class="code-line" id="line-${i+1}">
+      <span class="line-num">${i+1}</span>
+      <span class="line-code">${line.html || '&nbsp;'}</span>
+    </div>
+  `).join('');
+}
+
+function renderStep(idx) {
+  const step = STEPS[idx];
+  document.querySelectorAll('.code-line').forEach(el => el.classList.remove('active'));
+  const activeLine = document.getElementById('line-' + step.line);
+  if (activeLine) {
+    activeLine.classList.add('active');
+    activeLine.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  document.getElementById('explanation').innerHTML = step.explain;
+  document.getElementById('outputBox').textContent = step.output;
+
+  const vecEl = document.getElementById('vectorVisual');
+  if (step.arr.length === 0) {
+    vecEl.innerHTML = '<span style="color:#374151;font-size:12px">Chưa khởi tạo</span>';
+  } else {
+    vecEl.innerHTML = step.arr.map((val, i) => `
+      <div class="vec-box ${i === step.hi ? 'active' : ''}">
+        <span class="vec-index">${i}</span>
+        <span class="vec-value">${val}</span>
+      </div>
+    `).join('');
+  }
+
+  const grid = document.getElementById('varsGrid');
+  grid.innerHTML = `<div class="var-chip"><span class="var-name">size</span><span class="var-eq">=</span><span class="var-val">${step.arr.length}</span></div>`;
+
+  document.getElementById('stepCounter').textContent = `${idx+1} / ${STEPS.length}`;
+  document.getElementById('slider').value = idx;
+}
+
+function goToStep(idx) {
+  current = Math.max(0, Math.min(STEPS.length - 1, idx));
+  renderStep(current);
+}
+
+function goNext() {
+  if (current < STEPS.length - 1) goToStep(current + 1);
+  else stopPlay();
+}
+
+function goPrev() { goToStep(current - 1); }
+function goFirst() { goToStep(0); }
+
+function togglePlay() {
+  playing ? stopPlay() : startPlay();
+}
+
+function startPlay() {
+  playing = true;
+  document.getElementById('playBtn').textContent = '⏸ Dừng';
+  const speed = parseInt(document.getElementById('speedSelect').value);
+  timer = setInterval(() => {
+    if (current >= STEPS.length - 1) { stopPlay(); return; }
+    goNext();
+  }, speed);
+}
+
+function stopPlay() {
+  playing = false;
+  clearInterval(timer);
+  document.getElementById('playBtn').textContent = '▶ Chạy';
+}
+
+renderCode();
+const slider = document.getElementById('slider');
+slider.max = STEPS.length - 1;
+document.getElementById('sliderMax').textContent = STEPS.length - 1;
+goToStep(0);
+</script>
+</body>
+</html>

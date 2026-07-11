@@ -74,3 +74,11 @@ int main() {
     return 0;
 }
 ```
+## Trực quan hoá
+
+<iframe 
+  src="/visualizer-stl.html" 
+  width="100%" 
+  height="580px" 
+  style="border:none; border-radius:12px;">
+</iframe>
