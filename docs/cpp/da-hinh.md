@@ -66,3 +66,11 @@ public:
     float chuVi() override { return 4 * canh; }
 };
 ```
+## Trực quan hoá
+
+<iframe 
+  src="/visualizer-dahinh.html" 
+  width="100%" 
+  height="560px" 
+  style="border:none; border-radius:12px;">
+</iframe>
