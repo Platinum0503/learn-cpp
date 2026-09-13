@@ -188,6 +188,29 @@
     background: #be185d; cursor: pointer; box-shadow: 0 0 8px rgba(190,24,93,0.6);
   }
   .slider-label { font-size: 11px; color: #475569; font-family: 'JetBrains Mono', monospace; }
+
+  @media (max-width: 640px) {
+    .main {
+      grid-template-columns: 1fr;
+    }
+    .code-panel {
+      border-right: none;
+      border-bottom: 1px solid #2d3154;
+      max-height: 240px;
+    }
+    .line-code {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .toolbar {
+      justify-content: center;
+    }
+    .step-counter {
+      margin-left: 0;
+      width: 100%;
+      text-align: center;
+    }
+  }
 </style>
 </head>
 <body>

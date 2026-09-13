@@ -58,6 +58,29 @@
   .slider-bar input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: #2d3154; border-radius: 2px; outline: none; }
   .slider-bar input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #b45309; cursor: pointer; box-shadow: 0 0 8px rgba(180,83,9,0.6); }
   .slider-label { font-size: 11px; color: #475569; font-family: 'JetBrains Mono', monospace; }
+
+  @media (max-width: 640px) {
+    .main {
+      grid-template-columns: 1fr;
+    }
+    .code-panel {
+      border-right: none;
+      border-bottom: 1px solid #2d3154;
+      max-height: 240px;
+    }
+    .line-code {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .toolbar {
+      justify-content: center;
+    }
+    .step-counter {
+      margin-left: 0;
+      width: 100%;
+      text-align: center;
+    }
+  }
 </style>
 </head>
 <body>
