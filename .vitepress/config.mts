@@ -5,8 +5,9 @@ export default defineConfig({
   description: "Tài liệu học C++ từ cơ bản đến nâng cao",
   srcDir: 'docs',
   themeConfig: {
-    nav: [
+        nav: [
       { text: 'Trang chủ', link: '/' },
+      { text: 'Playground', link: '/playground' },
       { text: 'Tác giả', link: '/tac-gia' }
     ],
     sidebar: [
