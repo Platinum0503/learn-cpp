@@ -4,7 +4,10 @@ export default defineConfig({
   title: "Learn C++",
   description: "Tài liệu học C++ từ cơ bản đến nâng cao",
   srcDir: 'docs',
+  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
   themeConfig: {
+    logo: '/logo.svg',
+     logo: '/logo.svg',
     nav: [
       { text: 'Trang chủ', link: '/' },
       {
