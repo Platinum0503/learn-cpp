@@ -1,49 +1,80 @@
-/* Hero xuất hiện dần khi tải trang */
-.VPHero .name,
-.VPHero .text,
-.VPHero .tagline {
-  animation: fadeSlideUp 0.6s ease-out both;
-}
-.VPHero .name { animation-delay: 0s; }
-.VPHero .text { animation-delay: 0.15s; }
-.VPHero .tagline { animation-delay: 0.3s; }
-.VPHero .actions { animation: fadeSlideUp 0.6s ease-out 0.45s both; }
+/* ===== Landing-page style overrides for the homepage ===== */
 
-@keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Bold dark gradient background behind the whole hero area */
+.VPHome .VPHero {
+  background: radial-gradient(ellipse at top, #15193a 0%, #0b0e14 65%);
+  border-radius: 16px;
+  padding-top: 48px !important;
+  padding-bottom: 24px !important;
 }
 
-/* Con trỏ nhấp nháy kiểu terminal sau tagline */
-.VPHero .tagline::after {
-  content: '▊';
-  margin-left: 4px;
-  animation: blink 1s step-start infinite;
-  color: var(--vp-c-brand-1);
+/* Oversized, bold hero title */
+.VPHome .VPHero .name {
+  font-size: clamp(40px, 7vw, 72px) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+.VPHome .VPHero .text {
+  font-size: clamp(28px, 4.5vw, 44px) !important;
+  font-weight: 700 !important;
+  color: #e8eaf0 !important;
+}
+.VPHome .VPHero .tagline {
+  font-size: 18px !important;
+  color: #9aa3b8 !important;
 }
 
-@keyframes blink {
-  50% { opacity: 0; }
+/* Bigger, bolder CTA buttons, pill-shaped like the reference */
+.VPHome .VPHero .actions .VPButton {
+  border-radius: 999px !important;
+  padding: 12px 28px !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+}
+.VPHome .VPHero .actions .VPButton.brand {
+  background: linear-gradient(135deg, #1a52f9, #3f7dfb) !important;
+  border: none !important;
 }
 
-/* Feature card nhấc lên khi hover */
-.VPFeature {
-  transition: transform 0.25s ease, border-color 0.25s ease;
+/* Stats row, sitting right under the hero like the reference's "150+ / 98%" badges */
+.cpp-stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin: 8px auto 40px;
+  padding: 24px 0;
 }
-.VPFeature:hover {
+.cpp-stat {
+  text-align: center;
+}
+.cpp-stat-number {
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1a52f9, #8aa8ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cpp-stat-label {
+  font-size: 13px;
+  color: #8b93a8;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Feature cards: darker, bolder border, slight lift on hover — landing-page card feel */
+.VPHome .VPFeature {
+  background: #11141f !important;
+  border: 1px solid #242938 !important;
+  border-radius: 14px !important;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.VPHome .VPFeature:hover {
   transform: translateY(-4px);
-  border-color: var(--vp-c-brand-1) !important;
+  border-color: #1a52f9 !important;
 }
-
-/* Tôn trọng người dùng tắt hiệu ứng động (accessibility) */
-@media (prefers-reduced-motion: reduce) {
-  .VPHero .name, .VPHero .text, .VPHero .tagline, .VPHero .actions,
-  .VPFeature, .VPHero .tagline::after {
-    animation: none !important;
-    transition: none !important;
-  }
-}
-/* Ẩn feature card mặc định, dùng bản custom thay thế */
-.VPHome .VPFeatures {
-  display: none;
+.VPHome .VPFeature .title {
+  font-weight: 700 !important;
 }
