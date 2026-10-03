@@ -36,8 +36,7 @@ export default defineConfig({
           { text: 'Câu hỏi thường gặp', link: '/cpp/faq' },
         ]
       },
-      { text: 'Playground', link: '/playground' },
-      { text: 'Tác giả', link: '/tac-gia' }
+      { text: 'Playground', link: '/playground' }
     ],
     sidebar: [
       {
